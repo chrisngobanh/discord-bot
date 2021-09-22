@@ -28,6 +28,7 @@ player.on('connectionError', (queue, error) => {
 
 player.on('trackStart', (queue, track) => {
   queue.metadata.send(`▶ | Started playing: **${track.title}** in **${queue.connection.channel.name}**!`);
+  client.user.setActivity(track.title, { type: 'PLAYING' });
 });
 
 player.on('trackAdd', (queue, track) => {
