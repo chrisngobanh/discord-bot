@@ -24,15 +24,34 @@ player.on('error', (queue, error) => {
 
 player.on('connectionError', (queue, error) => {
   console.log(`[${queue.guild.name}] Error emitted from the connection: ${error.message}`);
+  queue.skip();
+  queue.play();
 });
 
-player.on('trackStart', (queue, track) => {
-  queue.metadata.send(`▶ | Started playing: **${track.title}** in **${queue.connection.channel.name}**!`);
-  client.user.setActivity(track.title, { type: 'PLAYING' });
+player.on('trackStart', async (queue, track) => {
+  const message = await queue.metadata.send({
+    embeds: [
+      {
+        author: { name: '▶ | Started Playing', iconURL: client.user.avatarURL() },
+        title: track.title,
+        description: `Requested by: <@!${track.requestedBy.id}>`,
+        thumbnail: { url: track.thumbnail },
+        url: track.url,
+        footer: { text: `In 🔊 ${queue.connection.channel.name}` },
+        color: 0x607d8b,
+      },
+    ],
+  });
+
+  track.message = message;
+  client.user.setStatus('online');
+  client.user.setActivity(track.title, { type: 'PLAYING', url: track.url });
 });
 
-player.on('trackAdd', (queue, track) => {
-  queue.metadata.send(`🎶 | Track **${track.title}** queued!`);
+player.on('trackEnd', (queue, track) => {
+  if (track.message) {
+    track.message.delete();
+  }
 });
 
 player.on('botDisconnect', queue => {
@@ -44,7 +63,8 @@ player.on('channelEmpty', queue => {
 });
 
 player.on('queueEnd', queue => {
-  queue.metadata.send('✅ | Queue finished!');
+  client.user.setStatus('idle');
+  client.user.setActivity();
 });
 
 client.once('ready', async () => {
@@ -59,8 +79,17 @@ client.once('reconnecting', () => {
   console.log('Reconnecting!');
 });
 
-client.once('disconnect', () => {
+client.once('shardDisconnect', () => {
   console.log('Disconnect!');
+});
+
+client.on('voiceStateUpdate', async (before, after) => {
+  const { channel, member } = after;
+
+  if (member?.user?.id === client?.user?.id && !channel) {
+    client.user.setStatus('idle');
+    client.user.setActivity();
+  }
 });
 
 client.on('messageCreate', async message => {
@@ -84,7 +113,7 @@ client.on('interactionCreate', async interaction => {
   const command = client.commands.get(interaction.commandName.toLowerCase());
 
   try {
-    if (interaction.commandName == 'ban' || interaction.commandName == 'userinfo') {
+    if (interaction.commandName == 'userinfo') {
       command.execute(interaction, client);
     } else {
       command.execute(interaction, player);

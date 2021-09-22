@@ -28,20 +28,23 @@ module.exports = {
         content: '❌ | No music is being played!',
       });
     const progress = queue.createProgressBar();
-    const perc = queue.getPlayerTimestamp();
-
+    
     return void interaction.followUp({
       embeds: [
         {
-          title: 'Now Playing',
-          description: `🎶 | **${queue.current.title}**! (\`${perc.progress}%\`)`,
+          author: { name: '🎶 | Now Playing', iconURL: interaction.guild.me.user.avatarURL() },
+          title: queue.current.title,
+          description: `Requested by: <@!${queue.current.requestedBy.id}>`,
+          thumbnail: { url: queue.current.thumbnail },
+          url: queue.current.url,
+          footer: { text: `In 🔊 ${queue.connection.channel.name}` },
           fields: [
             {
               name: '\u200b',
               value: progress,
             },
           ],
-          color: 0xffffff,
+          color: 0x607d8b,
         },
       ],
     });

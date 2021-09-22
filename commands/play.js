@@ -31,6 +31,21 @@ module.exports = {
         });
       }
 
+      const queue = await player.createQueue(interaction.guild, {
+        ytdlOptions: {
+          quality: "highest",
+          filter: "audioonly",
+          highWaterMark: 1 << 25,
+          dlChunkSize: 0,
+        },
+        metadata: interaction.channel,
+      });
+
+      const message = await queue.metadata.send({
+        content: `⏱ | Searching...`,
+      });
+
+
       await interaction.deferReply();
 
       const query = interaction.options.get('query').value;
@@ -43,15 +58,6 @@ module.exports = {
       if (!searchResult || !searchResult.tracks.length)
         return void interaction.followUp({content: 'No results were found!'});
 
-      const queue = await player.createQueue(interaction.guild, {
-        ytdlOptions: {
-				quality: "highest",
-				filter: "audioonly",
-				highWaterMark: 1 << 25,
-				dlChunkSize: 0,
-			},
-        metadata: interaction.channel,
-      });
 
       try {
         if (!queue.connection) await queue.connect(interaction.member.voice.channel);
@@ -62,10 +68,30 @@ module.exports = {
         });
       }
 
-      await interaction.followUp({
-        content: `⏱ | Loading your ${searchResult.playlist ? 'playlist' : 'track'}...`,
-      });
-      searchResult.playlist ? queue.addTracks(searchResult.tracks) : queue.addTrack(searchResult.tracks[0]);
+      if (searchResult.playlist) { 
+        queue.addTracks(searchResult.tracks)
+        interaction.followUp({
+          embeds: [
+            {
+              description: `Queued ${searchResult.tracks.length} tracks [<@!${interaction.member.id}>]`,
+              color: 0x607d8b,
+            },
+          ],
+        });
+      } else { 
+        const track = searchResult.tracks[0];
+        queue.addTrack(track);
+        interaction.followUp({
+          embeds: [
+            {
+              description: `Queued [${track.title}](${track.url}) [<@!${interaction.member.id}>]`,
+              color: 0x607d8b,
+            },
+          ],
+        });
+      }
+      message.delete();
+
       if (!queue.playing) await queue.play();
     } catch (error) {
       console.log(error);
