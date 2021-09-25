@@ -1,8 +1,11 @@
 const fs = require('fs');
 const Discord = require('discord.js');
 const Client = require('./client/Client');
-const config = require('./config.json');
 const {Player} = require('discord-player');
+
+require('dotenv').config();
+
+const token = process.env.BOT_TOKEN;
 
 const client = new Client();
 client.commands = new Discord.Collection();
@@ -71,10 +74,6 @@ client.once('ready', async () => {
   console.log('Ready!');
 });
 
-client.on('ready', function() {
-  client.user.setActivity(config.activity, { type: config.activityType });
-});
-
 client.once('reconnecting', () => {
   console.log('Reconnecting!');
 });
@@ -126,4 +125,4 @@ client.on('interactionCreate', async interaction => {
   }
 });
 
-client.login(config.token);
+client.login(token);
