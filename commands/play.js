@@ -39,6 +39,9 @@ module.exports = {
           dlChunkSize: 0,
         },
         metadata: interaction.channel,
+        leaveOnEnd: false,
+        leaveOnStop: false,
+        bufferingTimeout: 10000,
       });
 
       const message = await queue.metadata.send({
