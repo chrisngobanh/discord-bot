@@ -40,7 +40,6 @@ module.exports = {
         },
         metadata: interaction.channel,
         leaveOnEnd: false,
-        leaveOnStop: false,
         bufferingTimeout: 10000,
       });
 
