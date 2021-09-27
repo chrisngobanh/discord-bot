@@ -475,10 +475,9 @@ discord-api-types@^0.22.0:
   resolved "https://registry.yarnpkg.com/discord-api-types/-/discord-api-types-0.22.0.tgz#34dc57fe8e016e5eaac5e393646cd42a7e1ccc2a"
   integrity sha512-l8yD/2zRbZItUQpy7ZxBJwaLX/Bs2TGaCthRppk8Sw24LOIWg12t9JEreezPoYD0SQcC2htNNo27kYEpYW/Srg==
 
-discord-player@^5.1.0:
+"discord-player@git+ssh://git@github.com:chrisngobanh/discord-player.git#master":
   version "5.1.0"
-  resolved "https://registry.yarnpkg.com/discord-player/-/discord-player-5.1.0.tgz#7964f9d0cc195da1ca3c327f8d25dfbbb806f1ee"
-  integrity sha512-Rp+A/k8sm3h+MfTxhdGZjFsEK26lf5YcyBhiLgEGvh/aRRxw7z9+twnIyEPHQC8gtTiZHlfHD7ihztKFT/XJCQ==
+  resolved "git+ssh://git@github.com:chrisngobanh/discord-player.git#f2d959d3bea178e192f8362df6a56c84a4bb2aca"
   dependencies:
     "@discordjs/voice" "^0.6.0"
     discord-ytdl-core "^5.0.4"
@@ -1639,8 +1638,7 @@ yallist@^4.0.0:
 
 youtube-sr@^4.1.7:
   version "4.1.7"
-  resolved "https://registry.yarnpkg.com/youtube-sr/-/youtube-sr-4.1.7.tgz#a7cdff3e2ce3027170c96e0ca936bfba05955538"
-  integrity sha512-OKbm+561Fq5RlnUtJBmPhnyfS6Zon44zdPhY1v/Y9vpAHzqdfxomD43yc0ZQv6zNsVzSlAkGeWhoweNd6DUUjQ==
+  resolved "https://github.com/DevSnowflake/youtube-sr#672e2756673f8aa348c4594bd0e9addaccad9113"
   dependencies:
     node-fetch "^2.6.1"
 
