@@ -2,6 +2,7 @@ const fs = require('fs');
 const Discord = require('discord.js');
 const Client = require('./client/Client');
 const {Player} = require('discord-player');
+global.AbortController = require('abort-controller');
 
 require('dotenv').config();
 
