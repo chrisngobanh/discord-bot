@@ -28,9 +28,9 @@ player.on('error', (queue, error) => {
 
 player.on('connectionError', (queue, error) => {
   console.log(`[${queue.guild.name}] Error emitted from the connection: ${error.message}`);
-  queue.metadata.send(`❌ | Error playing **${queue.current.title}**, skipping track...`);
+  queue.metadata.send(`❌ | Error playing track, skipping...`);
   if (queue.current.message) {
-    track.message.delete();
+    queue.current.message.delete();
   }
   queue.skip();
   queue.play();
