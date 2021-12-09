@@ -93,8 +93,10 @@ module.exports = {
         });
       }
       message.delete();
-
-      if (!queue.playing) await queue.play();
+      if (!queue.playing) {
+        await queue.play();
+        queue.playing = true;
+      }
     } catch (error) {
       console.log(error);
       interaction.followUp({
