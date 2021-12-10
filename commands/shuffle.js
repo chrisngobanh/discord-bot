@@ -2,7 +2,7 @@ const {GuildMember} = require('discord.js');
 
 module.exports = {
   name: 'shuffle',
-  description: 'shuffle the queue!',
+  description: 'Shuffles the queue!',
   async execute(interaction, player) {
     if (!(interaction.member instanceof GuildMember) || !interaction.member.voice.channel) {
       return void interaction.reply({

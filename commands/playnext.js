@@ -1,10 +1,8 @@
-const {GuildMember} = require('discord.js');
-const {QueryType} = require('discord-player');
 const playFn = require('../utils/playFn');
 
 module.exports = {
-  name: 'play',
-  description: 'Play a song in your channel!',
+  name: 'playnext',
+  description: 'Queues a song to be played next, after the current song finishes.',
   options: [
     {
       name: 'query',
@@ -13,5 +11,5 @@ module.exports = {
       required: true,
     },
   ],
-  execute: playFn(),
+  execute: playFn({ shouldPlayNext: true })
 };

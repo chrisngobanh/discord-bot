@@ -2,7 +2,7 @@ const {GuildMember} = require('discord.js');
 
 module.exports = {
   name: 'move',
-  description: 'move song position in the queue!',
+  description: 'Move a song\'s position in the queue',
   options: [
     {
       name: 'track',

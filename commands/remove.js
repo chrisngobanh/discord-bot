@@ -2,7 +2,7 @@ const {GuildMember} = require('discord.js');
 
 module.exports = {
   name: 'remove',
-  description: 'remove a song from the queue!',
+  description: 'Remove a song from the queue!',
   options: [
     {
       name: 'number',
