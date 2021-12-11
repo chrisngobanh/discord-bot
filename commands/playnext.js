@@ -1,6 +1,6 @@
-const playFn = require('../utils/playFn');
+import playFn from '../utils/playFn.js';
 
-module.exports = {
+export default {
   name: 'playnext',
   description: 'Queues a song to be played next, after the current song finishes.',
   options: [

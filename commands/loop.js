@@ -1,7 +1,7 @@
-const {GuildMember} = require('discord.js');
-const {QueueRepeatMode} = require('discord-player');
+import { GuildMember } from 'discord.js';
+import { QueueRepeatMode } from 'discord-player';
 
-module.exports = {
+export default {
   name: 'loop',
   description: 'Sets loop mode',
   options: [

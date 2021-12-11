@@ -1,6 +1,6 @@
-const {GuildMember} = require('discord.js');
+import { GuildMember } from 'discord.js';
 
-module.exports = {
+export default {
   name: 'move',
   description: 'Move a song\'s position in the queue',
   options: [

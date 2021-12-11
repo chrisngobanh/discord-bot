@@ -1,10 +1,13 @@
-const fs = require('fs');
-const Discord = require('discord.js');
-const Client = require('./client/Client');
-const {Player} = require('discord-player');
-global.AbortController = require('abort-controller');
+import fs from 'fs';
+import Discord from 'discord.js';
+import Client from './client/Client.js';
+import { Player } from 'discord-player';
+import playFile from './utils/playFile.js';
+import AbortController from 'abort-controller';
+import dotEnv from 'dotenv';
+global.AbortController = AbortController;
 
-require('dotenv').config();
+dotEnv.config();
 
 const token = process.env.BOT_TOKEN;
 
@@ -13,10 +16,10 @@ client.commands = new Discord.Collection();
 
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 
-for (const file of commandFiles) {
-  const command = require(`./commands/${file}`);
+commandFiles.forEach(async (file) => {
+  const command = (await import(`./commands/${file}`)).default;
   client.commands.set(command.name, command);
-}
+});
 
 // console.log(client.commands);
 
@@ -110,6 +113,11 @@ client.on('messageCreate', async message => {
         message.reply('Could not deploy commands! Make sure the bot has the application.commands permission!');
         console.error(err);
       });
+  } else if (message.content === '!playfile' && message.author.id === client.application?.owner?.id) {
+    // console.log(message.member);
+    // message.reply('Cannot play file');
+    playFile(message, player); 
+
   }
 });
 

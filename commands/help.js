@@ -1,6 +1,6 @@
-const fs = require('fs');
+import fs from 'fs';
 
-module.exports = {
+export default {
   name: 'help',
   description: 'List all available commands.',
   execute(interaction) {
@@ -8,7 +8,7 @@ module.exports = {
     const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 
     for (const file of commandFiles) {
-      const command = require(`./${file}`);
+      const command = import(`./${file}`);
       str += `\`/${command.name}\` - ${command.description} \n`;
     }
 

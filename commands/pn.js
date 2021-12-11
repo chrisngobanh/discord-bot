@@ -1,4 +1,6 @@
-module.exports = {
-    ...require('./playnext'),
-    name: 'pn',
-  }
+import playNext from './playnext.js';
+
+export default {
+  ...playNext,
+  name: 'pn',
+}

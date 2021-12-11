@@ -1,6 +1,6 @@
-const {GuildMember} = require('discord.js');
+import { GuildMember } from 'discord.js';
 
-module.exports = {
+export default {
   name: 'remove',
   description: 'Remove a song from the queue!',
   options: [

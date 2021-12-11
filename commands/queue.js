@@ -1,6 +1,6 @@
-const {GuildMember} = require('discord.js');
+import { GuildMember } from 'discord.js';
 
-module.exports = {
+export default {
 
     name: 'queue',
     description: 'View the queue of current songs!',
@@ -24,19 +24,19 @@ module.exports = {
             });
           }
           var queue = player.getQueue(interaction.guildId);
-          if (typeof(queue) != 'undefined') {
-            trimString = (str, max) => ((str.length > max) ? `${str.slice(0, max - 3)}...` : str);
+          if (typeof(queue) != 'undefined' && queue.current) {
+            const trimString = (str, max) => ((str.length > max) ? `${str.slice(0, max - 3)}...` : str);
               return void interaction.reply({
                 embeds: [
                   {
                     title: 'Now Playing',
-                    description: trimString(`The Current song playing is 🎶 | **${queue.current.title}**! \n 🎶 | **${queue}**! `, 4095),
+                    description: trimString(`The Current song playing is 🎶 | **${queue.current.title}**! \n 🎶 | ${queue}!`, 4095),
                   }
                 ]
               })
           } else {
             return void interaction.reply({
-              content: 'There is no song in the queue!'
+              content: 'There are no songs in the queue!'
             })
           }
     }

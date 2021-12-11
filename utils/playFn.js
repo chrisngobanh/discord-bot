@@ -1,7 +1,7 @@
-const { GuildMember } = require('discord.js');
-const { QueryType } = require('discord-player');
+import { GuildMember } from 'discord.js';
+import { QueryType } from 'discord-player';
 
-module.exports = (options = {}) => {
+export default (options = {}) => {
   const { shouldPlayNext } = options;
 
   return async (interaction, player) => {

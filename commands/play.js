@@ -1,8 +1,6 @@
-const {GuildMember} = require('discord.js');
-const {QueryType} = require('discord-player');
-const playFn = require('../utils/playFn');
+import playFn from '../utils/playFn.js';
 
-module.exports = {
+export default {
   name: 'play',
   description: 'Play a song in your channel!',
   options: [
