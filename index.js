@@ -113,7 +113,7 @@ client.on('messageCreate', async message => {
         message.reply('Could not deploy commands! Make sure the bot has the application.commands permission!');
         console.error(err);
       });
-  } else if (message.content === '!playfile' && message.author.id === client.application?.owner?.id) {
+  } else if (message.content === '!playfile') {
     // console.log(message.member);
     // message.reply('Cannot play file');
     playFile(message, player); 
