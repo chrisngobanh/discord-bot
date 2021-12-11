@@ -50,7 +50,7 @@ export default async (message, player) => {
             author: member.displayName,
             url: attachment.url,
             thumbnail: member.user.avatarURL(),
-            duration: 'N/A',
+            duration: '0:00',
             views: 0,
             requestedBy: member.user,
             source: 'arbitrary',
