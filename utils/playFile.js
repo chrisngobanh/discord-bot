@@ -33,7 +33,7 @@ export default async (message, player) => {
           ytdlOptions,
           metadata: channel,
           leaveOnEnd: false,
-          bufferingTimeout: 10000,
+          bufferingTimeout: 0,
         });
     
         try {

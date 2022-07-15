@@ -32,7 +32,7 @@ export default (options = {}) => {
         },
         metadata: interaction.channel,
         leaveOnEnd: false,
-        bufferingTimeout: 10000,
+        bufferingTimeout: 0,
       });
   
       const message = await queue.metadata.send({
