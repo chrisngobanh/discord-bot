@@ -1,8 +1,10 @@
-import { Client, Collection, Intents } from 'discord.js';
+import { Client, Collection } from 'discord.js';
+import { GatewayIntentBits } from 'discord-api-types/v10';
+
 export default class extends Client {
   constructor(config) {
     super({
-      intents: [Intents.FLAGS.GUILD_VOICE_STATES, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILDS],
+      intents: [GatewayIntentBits.GuildVoiceStates, GatewayIntentBits.GuildMessages, GatewayIntentBits.Guilds],
     });
 
     this.commands = new Collection();
