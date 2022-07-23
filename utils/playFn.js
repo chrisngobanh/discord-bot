@@ -1,5 +1,6 @@
 import { GuildMember } from 'discord.js';
 import { QueryType } from 'discord-player';
+import playdl from 'play-dl';
 
 export default (options = {}) => {
   const { shouldPlayNext } = options;
@@ -33,6 +34,15 @@ export default (options = {}) => {
         metadata: interaction.channel,
         leaveOnEnd: false,
         bufferingTimeout: 0,
+
+        async onBeforeCreateStream(track, source, _queue) {
+          // only trap youtube source
+          if (source === "youtube") {
+              // track here would be youtube track
+              return (await playdl.stream(track.url, { discordPlayerCompatibility : true })).stream;
+              // we must return readable stream or void (returning void means telling discord-player to look for default extractor)
+          }
+      }
       });
   
       const message = await queue.metadata.send({
