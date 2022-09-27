@@ -116,12 +116,26 @@ client.on('messageCreate', async message => {
   } else if (message.content === '!playfile') {
     // console.log(message.member);
     // message.reply('Cannot play file');
-    playFile(message, player); 
+    playFile(message, player);
 
   }
 });
 
+client.on('guildMemberUpdate', (oldMember, newMember) => {
+  // someone is trying to change the bot's nickname
+  if(oldMember.id === client.user.id && oldMember.nickname !== newMember.nickname) {
+    newMember.setNickname('fuck off tyler');
+  }
+});
+
 client.on('interactionCreate', async interaction => {
+  if (interaction.user.id === '130770349234192384') {
+    interaction.reply({
+      content: 'You are blacklisted from running commands.',
+    });
+    return;
+  }
+
   const command = client.commands.get(interaction.commandName.toLowerCase());
 
   try {
