@@ -15,8 +15,8 @@ export default (options = {}) => {
       }
   
       if (
-        interaction.guild.me.voice.channelId &&
-        interaction.member.voice.channelId !== interaction.guild.me.voice.channelId
+        interaction.guild.members.me.voice.channelId &&
+        interaction.member.voice.channelId !== interaction.guild.members.me.voice.channelId
       ) {
         return void interaction.reply({
           content: 'You are not in my voice channel!',
@@ -35,6 +35,7 @@ export default (options = {}) => {
         leaveOnEnd: false,
         bufferingTimeout: 0,
 
+	      /*
         async onBeforeCreateStream(track, source, _queue) {
           // only trap youtube source
           if (source === "youtube") {
@@ -43,6 +44,7 @@ export default (options = {}) => {
               // we must return readable stream or void (returning void means telling discord-player to look for default extractor)
           }
       }
+      */
       });
   
       const message = await queue.metadata.send({

@@ -10,8 +10,8 @@ export default async (message, player) => {
         }
     
         if (
-          guild.me.voice.channelId &&
-          member.voice.channelId !== guild.me.voice.channelId
+          guild.members.me.voice.channelId &&
+          member.voice.channelId !== guild.members.me.voice.channelId
         ) {
           return void message.reply( 'You are not in my voice channel!');
         }
