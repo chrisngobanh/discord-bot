@@ -32,7 +32,7 @@ export default {
     return void interaction.followUp({
       embeds: [
         {
-          author: { name: '🎶 | Now Playing', iconURL: interaction.guild.me.user.avatarURL() },
+          author: { name: '🎶 | Now Playing', iconURL: interaction.guild.members.me.user.avatarURL() },
           title: queue.current.title,
           description: `Requested by: <@!${queue.current.requestedBy.id}>`,
           thumbnail: { url: queue.current.thumbnail },
