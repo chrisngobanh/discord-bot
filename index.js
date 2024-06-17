@@ -94,8 +94,40 @@ player.on('queueEnd', queue => {
 });
 
 client.once('ready', async () => {
-  console.log('Ready!');
+  const guilds = await client.guilds.fetch();
+  guilds.forEach(async (guild) => {
+    const _guild = await guild.fetch();
+
+    // Verify the commands on each guild
+    const commands = await _guild.commands.fetch();
+
+    commands.forEach(async (command) => {
+      const clientCommand = client.commands.get(command.name);
+
+      // If this command no longer exists, delete it
+      if (!clientCommand) {
+        return await command.delete();
+      }
+
+      clientCommand.id = command.id;
+
+      // Update the command if there were any changes
+      // TODO: Handle option changes
+      if (clientCommand.description !== command.description) {
+        return await command.edit(clientCommand);
+      }
+    });
+
+    client.commands.forEach((clientCommand) => {
+      // Check if command has been registered yet
+      if (!clientCommand.id) {
+        _guild.commands.create(clientCommand);
+      }
+    });
+  });
+  console.log('ready!');
 });
+
 
 client.once('reconnecting', () => {
   console.log('Reconnecting!');
@@ -114,6 +146,7 @@ client.on('voiceStateUpdate', async (before, after) => {
   }
 });
 
+/*
 client.on('messageCreate', async message => {
   if (message.author.bot || !message.guild) return;
   if (!client.application?.owner) await client.application?.fetch();
@@ -135,6 +168,9 @@ client.on('messageCreate', async message => {
 
   }
 });
+*/
+
+
 
 client.on('interactionCreate', async interaction => {
   const command = client.commands.get(interaction.commandName.toLowerCase());
