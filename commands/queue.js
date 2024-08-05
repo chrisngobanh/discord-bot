@@ -1,43 +1,40 @@
-import { GuildMember } from 'discord.js';
+import { useQueue } from 'discord-player';
+import { isInVoiceChannel } from '../utils/voicechannel.js';
 
 export default {
-
     name: 'queue',
     description: 'View the queue of current songs!',
 
-    async execute (interaction, player) {
+    async execute (interaction) {
+      const inVoiceChannel = isInVoiceChannel(interaction)
+      if (!inVoiceChannel) {
+          return
+      }
 
-        if (!(interaction.member instanceof GuildMember) || !interaction.member.voice.channel) {
-            return void interaction.reply({
-              content: 'You are not in a voice channel!',
-              ephemeral: true,
-            });
-          }
-    
-          if (
-            interaction.guild.members.me.voice.channelId &&
-            interaction.member.voice.channelId !== interaction.guild.members.me.voice.channelId
-          ) {
-            return void interaction.reply({
-              content: 'You are not in my voice channel!',
-              ephemeral: true,
-            });
-          }
-          var queue = player.getQueue(interaction.guildId);
-          if (typeof(queue) != 'undefined' && queue.current) {
-            const trimString = (str, max) => ((str.length > max) ? `${str.slice(0, max - 3)}...` : str);
-              return void interaction.reply({
-                embeds: [
-                  {
-                    title: 'Now Playing',
-                    description: trimString(`The Current song playing is 🎶 | **${queue.current.title}**! \n 🎶 | ${queue}!`, 4095),
-                  }
-                ]
-              })
-          } else {
-            return void interaction.reply({
-              content: 'There are no songs in the queue!'
-            })
-          }
+      const queue = useQueue(interaction.guild.id);
+
+      if (queue !== null && queue.currentTrack) {
+        const trimString = (str, max) => ((str.length > max) ? `${str.slice(0, max - 3)}...` : str);
+
+        let queueStr = `🎶 |  **Upcoming Songs:**\n`
+
+        // Build queue list
+        queue.tracks.data.forEach((track, index) => {
+          queueStr += `${index + 1}. ${track.title} - ${track.author}\n`;
+        });
+        
+        return void interaction.reply({
+          embeds: [
+            {
+              title: `Now Playing 🎶 |  **${queue.currentTrack.title}**`,
+              description: trimString(queueStr, 4095),
+            }
+          ]
+        });
+      } else {
+        return void interaction.reply({
+          content: 'There are no songs in the queue!',
+        });
+      }
     }
 }

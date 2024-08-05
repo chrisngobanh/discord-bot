@@ -1,33 +1,22 @@
-import { GuildMember } from 'discord.js';
+import { useQueue } from 'discord-player';
+import { isInVoiceChannel } from '../utils/voicechannel.js';
 
 export default {
   name: 'stop',
   description: 'Stop all songs in the queue!',
-  async execute(interaction, player) {
-    if (!(interaction.member instanceof GuildMember) || !interaction.member.voice.channel) {
-      return void interaction.reply({
-        content: 'You are not in a voice channel!',
-        ephemeral: true,
-      });
-    }
-
-    if (
-      interaction.guild.members.me.voice.channelId &&
-      interaction.member.voice.channelId !== interaction.guild.members.me.voice.channelId
-    ) {
-      return void interaction.reply({
-        content: 'You are not in my voice channel!',
-        ephemeral: true,
-      });
+  async execute(interaction) {
+    const inVoiceChannel = isInVoiceChannel(interaction)
+    if (!inVoiceChannel) {
+        return
     }
 
     await interaction.deferReply();
-    const queue = player.getQueue(interaction.guildId);
-    if (!queue)
-      return void interaction.followUp({
-        content: '❌ | No music is being played!',
-      });
-    queue.destroy();
+    const queue = useQueue(interaction.guild.id)
+    if (!queue || !queue.currentTrack)
+        return void interaction.followUp({
+            content: '❌ | No music is being played!',
+        });
+    queue.node.stop()
     return void interaction.followUp({content: '🛑 | Stopped the player!'});
   },
 };

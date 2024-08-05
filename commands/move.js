@@ -1,4 +1,5 @@
-import { GuildMember } from 'discord.js';
+import { useQueue } from 'discord-player';
+import { isInVoiceChannel } from '../utils/voicechannel.js';
 
 export default {
   name: 'move',
@@ -18,41 +19,33 @@ export default {
     },
   ],
   async execute(interaction, player) {
-    if (!(interaction.member instanceof GuildMember) || !interaction.member.voice.channel) {
-      return void interaction.reply({
-        content: 'You are not in a voice channel!',
-        ephemeral: true,
-      });
-    }
-
-    if (
-      interaction.guild.members.me.voice.channelId &&
-      interaction.member.voice.channelId !== interaction.guild.members.me.voice.channelId
-    ) {
-      return void interaction.reply({
-        content: 'You are not in my voice channel!',
-        ephemeral: true,
-      });
+    const inVoiceChannel = isInVoiceChannel(interaction)
+    if (!inVoiceChannel) {
+        return
     }
 
     await interaction.deferReply();
-    const queue = player.getQueue(interaction.guildId);
-    if (!queue || !queue.playing) return void interaction.followUp({content: '❌ | No music is being played!'});
-    const queueNumbers = [interaction.options.get('track').value - 1, interaction.options.get('position').value - 1];
-    if (queueNumbers[0] > queue.tracks.length || queueNumbers[1] > queue.tracks.length)
-      return void interaction.followUp({content: '❌ | Track number greater than queue depth!'});
+    const queue = useQueue(interaction.guild.id)
+
+    if (!queue || !queue.currentTrack)
+        return void interaction.followUp({content: '❌ | No music is being played!'});
+
+    const queueNumbers = [interaction.options.getInteger('track') - 1, interaction.options.getInteger('position') - 1];
+
+    if (queueNumbers[0] > queue.tracks.size || queueNumbers[1] > queue.tracks.size)
+        return void interaction.followUp({content: '❌ | Track number greater than queue depth!'});
 
     try {
-      const track = queue.remove(queueNumbers[0]);
-      queue.insert(track, queueNumbers[1]);
-      return void interaction.followUp({
-        content: `✅ | Moved **${track}**!`,
-      });
+        const track = queue.node.remove(queueNumbers[0]);
+        queue.node.insert(track, queueNumbers[1]);
+        return void interaction.followUp({
+            content: `✅ | Moved **${track}**!`,
+        });
     } catch (error) {
-      console.log(error);
-      return void interaction.followUp({
-        content: '❌ | Something went wrong!',
-      });
+        console.log(error);
+        return void interaction.followUp({
+            content: '❌ | Something went wrong!',
+        });
     }
   },
 };

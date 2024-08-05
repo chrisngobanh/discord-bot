@@ -1,123 +1,84 @@
-import { GuildMember } from 'discord.js';
-import { QueryType } from 'discord-player';
-import playdl from 'play-dl';
+import { useMainPlayer } from 'discord-player';
+import { isInVoiceChannel } from './voicechannel.js';
 
 export default (options = {}) => {
   const { shouldPlayNext } = options;
 
-  return async (interaction, player) => {
+  return async (interaction) => {
     try {
-      if (!(interaction.member instanceof GuildMember) || !interaction.member.voice.channel) {
+      const inVoiceChannel = isInVoiceChannel(interaction);
+
+      if (!inVoiceChannel) {
         return void interaction.reply({
           content: 'You are not in a voice channel!',
           ephemeral: true,
         });
       }
-  
-      if (
-        interaction.guild.members.me.voice.channelId &&
-        interaction.member.voice.channelId !== interaction.guild.members.me.voice.channelId
-      ) {
-        return void interaction.reply({
-          content: 'You are not in my voice channel!',
-          ephemeral: true,
-        });
-      }
-  
-      const queue = await player.createQueue(interaction.guild, {
-        ytdlOptions: {
-          quality: "highest",
-          filter: "audioonly",
-          highWaterMark: 1 << 25,
-          dlChunkSize: 0,
-        },
-        metadata: interaction.channel,
-        leaveOnEnd: false,
-        bufferingTimeout: 0,
 
-	      /*
-        async onBeforeCreateStream(track, source, _queue) {
-          // only trap youtube source
-          if (source === "youtube") {
-              // track here would be youtube track
-              return (await playdl.stream(track.url, { discordPlayerCompatibility : true })).stream;
-              // we must return readable stream or void (returning void means telling discord-player to look for default extractor)
-          }
-      }
-      */
-      });
-  
-      const message = await queue.metadata.send({
+      // console.log(interaction);
+
+      const message = await interaction.channel.send({
         content: `⏱ | Searching...`,
       });
-  
-  
+
       await interaction.deferReply();
-  
-      const query = interaction.options.get('query').value;
-      const searchResult = await player
-        .search(query, {
-          requestedBy: interaction.user,
-          searchEngine: QueryType.AUTO,
-        })
-        .catch(() => {});
-      if (!searchResult || !searchResult.tracks.length)
-        return void interaction.followUp({content: 'No results were found!'});
-  
+
+      const player = useMainPlayer();
+      const query = interaction.options.getString('query');
+      const searchResult = await player.search(query, {
+        requestedBy: interaction.user,
+      });
+
+      if (!searchResult.hasTracks()) return void interaction.followUp({content: 'No results were found!'});
   
       try {
-        if (!queue.connection) await queue.connect(interaction.member.voice.channel);
-      } catch {
-        void player.deleteQueue(interaction.guildId);
-        return void interaction.followUp({
-          content: 'Could not join your voice channel!',
+        await player.play(interaction.member.voice.channel.id, searchResult, {
+          nodeOptions: {
+            metadata: {
+                channel: interaction.channel,
+                client: interaction.guild?.members.me,
+            },
+            leaveOnEmptyCooldown: 300000,
+            leaveOnEmpty: true,
+            leaveOnEnd: false,
+            bufferingTimeout: 0,
+            volume: 10,
+          },
         });
-      }
 
-      const followUpText = (shouldPlayNext || !queue.playing) ? 'Up Next:' : 'Queued';
-
-      if (searchResult.playlist) {
-        if (shouldPlayNext) {
-          queue.insert(searchResult.tracks, 0)
+        if (searchResult.playlist) {
+          interaction.followUp({
+            embeds: [
+              {
+                description: `Queued: ${searchResult.tracks.length} tracks [<@!${interaction.user.id}>]`,
+                color: 0x607d8b,
+              },
+            ],
+          });
         } else {
-          queue.addTracks(searchResult.tracks)
+          const track = searchResult.tracks[0];
+
+          await interaction.followUp({
+            embeds: [
+              {
+                description: `Queued: [${track.title}](${track.url}) [<@!${interaction.user.id}>]`,
+                color: 0x607d8b,
+              },
+            ],
+          });
         }
 
-        interaction.followUp({
-          embeds: [
-            {
-              description: `${followUpText} ${searchResult.tracks.length} tracks [<@!${interaction.member.id}>]`,
-              color: 0x607d8b,
-            },
-          ],
-        });
-      } else { 
-        const track = searchResult.tracks[0];
-        if (shouldPlayNext) {
-          queue.insert(track, 0)
-        } else {
-          queue.addTrack(track);
-        }
-        interaction.followUp({
-          embeds: [
-            {
-              description: `${followUpText} [${track.title}](${track.url}) [<@!${interaction.member.id}>]`,
-              color: 0x607d8b,
-            },
-          ],
-        });
-      }
-      message.delete();
-
-      if (!queue.playing) {
-        await queue.play();
-        queue.playing = true;
+        message.delete();
+      } catch (error) {
+          await interaction.editReply({
+              content: 'An error has occurred!',
+          });
+          return console.log(error);
       }
     } catch (error) {
-      console.log(error);
-      interaction.followUp({
-        content: 'There was an error trying to execute that command: ' + error.message,
+      await interaction.reply({
+          content: 'There was an error trying to execute that command: ' + error.message,
       });
     }
-  };
-}
+  }
+};

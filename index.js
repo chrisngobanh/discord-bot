@@ -3,8 +3,10 @@ import Discord from 'discord.js';
 import Client from './client/Client.js';
 import { Player } from 'discord-player';
 import playFile from './utils/playFile.js';
+import { YoutubeiExtractor } from "discord-player-youtubei"
 import AbortController from 'abort-controller';
 import dotEnv from 'dotenv';
+
 global.AbortController = AbortController;
 
 dotEnv.config();
@@ -21,32 +23,73 @@ commandFiles.forEach(async (file) => {
   client.commands.set(command.name, command);
 });
 
-// console.log(client.commands);
-
 const player = new Player(client);
 
-player.on('connectionCreate', (queue) => {
-    queue.connection.voiceConnection.on('stateChange', (oldState, newState) => {
-      const oldNetworking = Reflect.get(oldState, 'networking');
-      const newNetworking = Reflect.get(newState, 'networking');
+player.extractors.register(YoutubeiExtractor, {})
 
-      const networkStateChangeHandler = (oldNetworkState, newNetworkState) => {
-        const newUdp = Reflect.get(newNetworkState, 'udp');
-        clearInterval(newUdp?.keepAliveInterval);
-      }
+player.extractors.loadDefault((ext) => console.log(ext)).then(r => console.log('Extractors loaded successfully'));
 
-      oldNetworking?.off('stateChange', networkStateChangeHandler);
-      newNetworking?.on('stateChange', networkStateChangeHandler);
-    });
+// player.events.on('audioTrackAdd', async (queue, track) => {
+//   // queue.metadata.channel.send(`🎶 | Song **${song.title}** added to the queue!`);
+//   queue.metadata.channel.send({
+//     embeds: [
+//       {
+//         description: `Queued: [${track.title}](${track.url}) [<@!${track.requestedBy.id}>]`,
+//         color: 0x607d8b,
+//       },
+//     ],
+//   });
+// });
+
+// player.on('connection', (queue) => {
+//     queue.connection.voiceConnection.on('stateChange', (oldState, newState) => {
+//       const oldNetworking = Reflect.get(oldState, 'networking');
+//       const newNetworking = Reflect.get(newState, 'networking');
+
+//       const networkStateChangeHandler = (oldNetworkState, newNetworkState) => {
+//         const newUdp = Reflect.get(newNetworkState, 'udp');
+//         clearInterval(newUdp?.keepAliveInterval);
+//       }
+
+//       oldNetworking?.off('stateChange', networkStateChangeHandler);
+//       newNetworking?.on('stateChange', networkStateChangeHandler);
+//     });
+// });
+
+player.events.on('disconnect', queue => {
+  queue.metadata.channel.send('❌ | I was manually disconnected from the voice channel, clearing queue!');
 });
 
-player.on('error', (queue, error) => {
-  console.log(`[${queue.guild.name}] Error emitted from the queue: ${error.message}`);
+player.events.on('emptyChannel', queue => {
+  queue.metadata.channel.send('❌ | Nobody is in the voice channel, leaving...');
 });
 
-player.on('connectionError', (queue, error) => {
+player.events.on('emptyQueue', queue => {
+  client.user.setStatus('idle');
+  client.user.setActivity();
+});
+
+player.events.on('error', (queue, error) => {
   console.log(`[${queue.guild.name}] Error emitted from the connection: ${error.message}`);
-  queue.metadata.send(`❌ | Error playing track, skipping...`);
+});
+
+// For debugging
+/*player.on('debug', async (message) => {
+    console.log(`General player debug event: ${message}`);
+});
+
+player.events.on('debug', async (queue, message) => {
+    console.log(`Player debug event: ${message}`);
+});
+
+player.events.on('playerError', (queue, error) => {
+    console.log(`Player error event: ${error.message}`);
+    console.log(error);
+});*/
+
+player.events.on('playerError', (queue, error) => {
+  console.log(`[${queue.guild.name}] Error emitted from the connection: ${error.message}`);
+  queue.metadata.channel.send(`❌ | Error playing track, skipping...`);
   if (queue.current.message) {
     queue.current.message.delete();
   }
@@ -54,8 +97,8 @@ player.on('connectionError', (queue, error) => {
   queue.play();
 });
 
-player.on('trackStart', async (queue, track) => {
-  const message = await queue.metadata.send({
+player.events.on('playerStart', async (queue, track) => {
+  const message = await queue.metadata.channel.send({
     embeds: [
       {
         author: { name: '▶ | Started Playing', iconURL: client.user.avatarURL() },
@@ -63,7 +106,7 @@ player.on('trackStart', async (queue, track) => {
         description: `Requested by: <@!${track.requestedBy.id}>`,
         thumbnail: { url: track.thumbnail },
         url: track.url,
-        footer: { text: `In 🔊 ${queue.connection.channel.name}` },
+        footer: { text: `In 🔊 ${queue.channel.name}` },
         color: 0x607d8b,
       },
     ],
@@ -74,23 +117,18 @@ player.on('trackStart', async (queue, track) => {
   client.user.setActivity(track.title, { type: 'PLAYING', url: track.url });
 });
 
-player.on('trackEnd', (queue, track) => {
+player.events.on('playerFinish', (queue, track) => {
   if (track.message) {
     track.message.delete();
   }
 });
 
-player.on('botDisconnect', queue => {
-  queue.metadata.send('❌ | I was manually disconnected from the voice channel, clearing queue!');
+player.events.on('disconnect', queue => {
+  queue.metadata.channel.send('❌ | I was manually disconnected from the voice channel, clearing queue!');
 });
 
-player.on('channelEmpty', queue => {
-  queue.metadata.send('❌ | Nobody is in the voice channel, leaving...');
-});
-
-player.on('queueEnd', queue => {
-  client.user.setStatus('idle');
-  client.user.setActivity();
+player.events.on('emptyChannel', queue => {
+  queue.metadata.channel.send('❌ | Nobody is in the voice channel, leaving...');
 });
 
 client.once('ready', async () => {
@@ -133,7 +171,7 @@ client.once('reconnecting', () => {
   console.log('Reconnecting!');
 });
 
-client.once('shardDisconnect', () => {
+client.once('disconnect', () => {
   console.log('Disconnect!');
 });
 
@@ -176,16 +214,12 @@ client.on('interactionCreate', async interaction => {
   const command = client.commands.get(interaction.commandName.toLowerCase());
 
   try {
-    if (interaction.commandName == 'userinfo') {
-      command.execute(interaction, client);
-    } else {
-      command.execute(interaction, player);
-    }
+    command.execute(interaction);
   } catch (error) {
-    console.error(error);
-    interaction.followUp({
-      content: 'There was an error trying to execute that command!',
-    });
+      console.error(error);
+      await interaction.followUp({
+          content: 'There was an error trying to execute that command!',
+      });
   }
 });
 
